@@ -8,9 +8,6 @@ const router = Router();
 router.get('/', authorController.getAuthors);
 router.get('/:id', authorController.getAuthor);
 router.post('/', validate(authorCreateSchema), authorController.createAuthor);
-// router.post('/', validate(authorCreateSchema), authorController.createAuthor);
-// router.post('/', authorController.createAuthor);
-
 router.put('/:id', validate(authorUpdateSchema), authorController.updateAuthor);
 router.delete('/:id', authorController.deleteAuthor);
 
