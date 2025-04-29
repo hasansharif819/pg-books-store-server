@@ -8,52 +8,47 @@ const lodash_1 = require("lodash");
 const http_status_1 = __importDefault(require("http-status"));
 class BookController {
     /**
-     * Get all books
+     * Get paginated and filtered books
      */
     async getBooks(req, res) {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const search = req.query.search || '';
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit))) || 10;
+        const title = req.query.title || '';
         const authorId = req.query.author ? parseInt(req.query.author) : undefined;
-        const books = await books_1.default.getAllBooks(page, limit, search, authorId);
-        res.status(http_status_1.default.OK).json(books);
+        const sortBy = ['title', 'published_date', 'created_at'].includes(req.query.sortBy)
+            ? req.query.sortBy
+            : 'title';
+        const sortOrder = req.query.sortOrder === 'desc' ? 'desc' : 'asc';
+        const result = await books_1.default.getAllBooks(page, limit, title, authorId, sortBy, sortOrder);
+        res.status(http_status_1.default.OK).json(result);
     }
     /**
-     * Get book by ID
+     * Get single book with author details
      */
     async getBook(req, res) {
-        const bookId = parseInt(req.params.id);
-        const book = await books_1.default.getBookById(bookId);
+        const book = await books_1.default.getBookById(parseInt(req.params.id));
         res.status(http_status_1.default.OK).json(book);
     }
     /**
-     * Create a new book
+     * Create new book
      */
     async createBook(req, res) {
-        const bookData = {
-            title: req.body.title,
-            description: req.body.description,
-            published_date: req.body.publishedDate, // Map to database column name
-            author_id: req.body.author_id,
-        };
+        const bookData = (0, lodash_1.pick)(req.body, ['title', 'description', 'published_date', 'author_id']);
         const newBook = await books_1.default.createBook(bookData);
-        res.status(201).json(newBook);
+        res.status(http_status_1.default.CREATED).json(newBook);
     }
     /**
-     * Update book by ID
+     * Update book
      */
     async updateBook(req, res) {
-        const bookId = parseInt(req.params.id);
-        const bookData = (0, lodash_1.pick)(req.body, ['title', 'description', 'published_date', 'author_id']);
-        const updatedBook = await books_1.default.updateBook(bookId, bookData);
+        const updatedBook = await books_1.default.updateBook(parseInt(req.params.id), (0, lodash_1.pick)(req.body, ['title', 'description', 'published_date', 'author_id']));
         res.status(http_status_1.default.OK).json(updatedBook);
     }
     /**
-     * Delete book by ID
+     * Delete book
      */
     async deleteBook(req, res) {
-        const bookId = parseInt(req.params.id);
-        await books_1.default.deleteBook(bookId);
+        await books_1.default.deleteBook(parseInt(req.params.id));
         res.status(http_status_1.default.NO_CONTENT).send();
     }
 }

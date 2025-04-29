@@ -6,7 +6,7 @@ import pick from 'lodash/pick';
 
 const validate =
   (schema: Joi.ObjectSchema) => (req: Request, res: Response, next: NextFunction) => {
-    console.log('Validating request:', req.body); // Debug log
+    // console.log('Validating request:', req.body); // Debug log
 
     const validSchema = pick(schema, ['body', 'query', 'params']);
     const object = pick(req, Object.keys(validSchema));
@@ -17,7 +17,7 @@ const validate =
     });
 
     if (error) {
-      console.log('Validation errors:', error.details); // Debug log
+      // console.log('Validation errors:', error.details); // Debug log
       const errorMessage = error.details.map((detail) => detail.message).join(', ');
       return next(new ApiError(httpStatus.BAD_REQUEST, errorMessage));
     }

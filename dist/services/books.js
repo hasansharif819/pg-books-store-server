@@ -8,21 +8,19 @@ const api_1 = __importDefault(require("../utils/api"));
 const http_status_1 = __importDefault(require("http-status"));
 class BookService {
     /**
-     * Get all books
+     * Get paginated books with filtering and sorting
      */
-    async getAllBooks(page, limit, search, authorId) {
-        return models_1.Book.getAll(page, limit, search, authorId);
+    async getAllBooks(page = 1, limit = 10, title = '', authorId, sortBy = 'title', sortOrder = 'asc') {
+        return models_1.Book.getAllWithAuthors(page, limit, title, authorId, sortBy, sortOrder);
     }
     /**
-     * Get book by ID
+     * Get book by ID with author details
      */
     async getBookById(id) {
-        const book = await models_1.Book.getById(id);
-        if (!book) {
+        const book = await models_1.Book.getByIdWithAuthor(id);
+        if (!book)
             throw new api_1.default(http_status_1.default.NOT_FOUND, 'Book not found');
-        }
-        const author = await models_1.Book.getAuthor(id);
-        return { ...book, author };
+        return book;
     }
     /**
      * Create a new book
@@ -31,31 +29,21 @@ class BookService {
         return models_1.Book.create(bookData);
     }
     /**
-     * Update book by ID
+     * Update book
      */
     async updateBook(id, bookData) {
-        const book = await models_1.Book.getById(id);
-        if (!book) {
-            throw new api_1.default(http_status_1.default.NOT_FOUND, 'Book not found');
-        }
         const updatedBook = await models_1.Book.update(id, bookData);
-        if (!updatedBook) {
-            throw new api_1.default(http_status_1.default.INTERNAL_SERVER_ERROR, 'Failed to update book');
-        }
+        if (!updatedBook)
+            throw new api_1.default(http_status_1.default.NOT_FOUND, 'Book not found');
         return updatedBook;
     }
     /**
-     * Delete book by ID
+     * Delete book
      */
     async deleteBook(id) {
-        const book = await models_1.Book.getById(id);
-        if (!book) {
-            throw new api_1.default(http_status_1.default.NOT_FOUND, 'Book not found');
-        }
         const deletedCount = await models_1.Book.delete(id);
-        if (deletedCount === 0) {
-            throw new api_1.default(http_status_1.default.INTERNAL_SERVER_ERROR, 'Failed to delete book');
-        }
+        if (deletedCount === 0)
+            throw new api_1.default(http_status_1.default.NOT_FOUND, 'Book not found');
     }
 }
 exports.default = new BookService();
