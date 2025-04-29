@@ -7,8 +7,20 @@ class AuthorService {
   /**
    * Get all authors
    */
-  async getAllAuthors(page: number, limit: number, search: string): Promise<IAuthor[]> {
-    return Author.getAll(page, limit, search);
+  async getAllAuthors(
+    page: number = 1,
+    limit: number = 10,
+    name: string = '',
+    sortBy: string = 'name',
+    sortOrder: 'asc' | 'desc' = 'asc',
+  ) {
+    const result = await Author.getAll(page, limit, name, sortBy, sortOrder);
+
+    if (result.data.length === 0) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'No Author found');
+    }
+
+    return result;
   }
 
   /**

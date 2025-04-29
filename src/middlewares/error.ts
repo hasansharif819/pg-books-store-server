@@ -40,3 +40,36 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 };
 
 export { errorConverter, errorHandler };
+
+// // src/middlewares/error.ts
+// import { ErrorRequestHandler } from 'express';
+// import { ApiResponse } from '../utils/apiResponse';
+// import ApiError from '../utils/apiError';
+// import httpStatus from 'http-status';
+
+// export const errorConverter: ErrorRequestHandler = (err, req, res, next) => {
+//   if (!(err instanceof ApiError)) {
+//     const statusCode =
+//       typeof err.statusCode === 'number' && httpStatus[err.statusCode as keyof typeof httpStatus]
+//         ? err.statusCode
+//         : httpStatus.INTERNAL_SERVER_ERROR;
+
+//     const message = err.message || String(httpStatus[statusCode as keyof typeof httpStatus]);
+//     err = new ApiError(statusCode, message, false, err.stack);
+//   }
+//   next(err);
+// };
+
+// export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+//   const { statusCode, message } = err;
+
+//   ApiResponse.sendResponse(
+//     res,
+//     statusCode,
+//     message,
+//     null,
+//     process.env.NODE_ENV === 'development' ? { stack: err.stack } : undefined,
+//   );
+// };
+
+// export default { errorConverter, errorHandler };

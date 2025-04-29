@@ -8,13 +8,62 @@ class Author {
     /**
      * Get all authors with pagination
      */
-    static async getAll(page = 1, limit = 10, search = '') {
+    // static async getAll(
+    //   page: number = 1,
+    //   limit: number = 10,
+    //   search: string = '',
+    // ): Promise<IAuthor[]> {
+    //   const offset = (page - 1) * limit;
+    //   return db(this.table)
+    //     .where('name', 'ilike', `%${search}%`)
+    //     .offset(offset)
+    //     .limit(limit)
+    //     .select('*');
+    // }
+    static async getAll(page = 1, limit = 10, name = '', sortBy = 'name', sortOrder = 'asc') {
         const offset = (page - 1) * limit;
-        return (0, db_1.default)(this.table)
-            .where('name', 'ilike', `%${search}%`)
-            .offset(offset)
-            .limit(limit)
-            .select('*');
+        // Base query with books join
+        let query = (0, db_1.default)(this.table)
+            .select('authors.*', db_1.default.raw(`
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', books.id,
+                'title', books.title,
+                'description', books.description,
+                'published_date', books.published_date
+              )
+            ) FILTER (WHERE books.id IS NOT NULL),
+            '[]'
+          ) as books
+        `))
+            .leftJoin('books', 'authors.id', 'books.author_id')
+            .where('authors.name', 'ilike', `%${name}%`)
+            .groupBy('authors.id');
+        // Validate and apply sorting
+        const validSortColumns = ['name', 'birthdate', 'created_at'];
+        const validatedSortBy = validSortColumns.includes(sortBy) ? sortBy : 'name';
+        query = query.orderBy(`authors.${validatedSortBy}`, sortOrder);
+        // Get total count
+        const countQuery = (0, db_1.default)(this.table).count('* as total').where('name', 'ilike', `%${name}%`);
+        // Execute queries in parallel
+        const [countResult, authors] = await Promise.all([
+            countQuery.first(),
+            query.offset(offset).limit(limit),
+        ]);
+        const total = Number(countResult?.total) || 0;
+        return {
+            data: authors.map((author) => ({
+                ...author,
+                books: author.books || [],
+            })),
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
     }
     /**
      * Get author by ID

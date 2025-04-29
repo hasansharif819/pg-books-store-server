@@ -10,8 +10,15 @@ class AuthorService {
     /**
      * Get all authors
      */
-    async getAllAuthors(page, limit, search) {
-        return models_1.Author.getAll(page, limit, search);
+    // async getAllAuthors(page: number, limit: number, search: string): Promise<IAuthor[]> {
+    //   return Author.getAll(page, limit, search);
+    // }
+    async getAllAuthors(page = 1, limit = 10, name = '', sortBy = 'name', sortOrder = 'asc') {
+        const result = await models_1.Author.getAll(page, limit, name, sortBy, sortOrder);
+        if (result.data.length === 0) {
+            throw new api_1.default(http_status_1.default.NOT_FOUND, 'No Author found');
+        }
+        return result;
     }
     /**
      * Get author by ID
